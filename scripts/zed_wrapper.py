@@ -125,10 +125,10 @@ class ZedWrapper:
                 bgr = deepcopy(bgr)
                 self.video_buffer.append(bgr)
 
-                # # TO test
-                # rgb = cv.cvtColor(bgr, cv.COLOR_BGR2RGB)
-                # cv.imshow('image', rgb)
-                # cv.waitKey(1)
+
+                rgb = cv.cvtColor(bgr, cv.COLOR_BGR2RGB)
+                cv.imshow('image', rgb)
+                cv.waitKey(1)
 
     def close_video_writer(self):
         with self.resource_lock:
