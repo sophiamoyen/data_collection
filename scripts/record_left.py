@@ -76,11 +76,10 @@ class RecordLeft:
     """
     Class for Structure for Data Collection
     """
-    def __init__(self, path_to_logs, collect=True):
+    def __init__(self, path_to_logs):
         """
         Args:
             path_to_logs (str): path to log folder. Subfolders with timestamp of each espisode will be created to save data of each episode
-            collect (bool): if True, will plot this and all EE_trajs before
         """
         
         self._collect = collect
@@ -220,9 +219,9 @@ class RecordLeft:
         start_time = time.time()
         start_wbc = start_time
         while True:
-            before = time.time()
+            # before = time.time()
             active, lin_vel, rot_vel, g, m, stop = self._teleop.get_update()
-            print(f'query teleop: {time.time() - before}')
+            # print(f'query teleop: {time.time() - before}')
             if stop:
                 break
             
