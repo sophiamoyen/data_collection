@@ -22,7 +22,10 @@ from msc_tiago.tiago_omni_compliant import TiagoOmni
 from msc_tiago.zed_wrapper import ZedWrapper
 
 GRIPPER_OPENING = 0.355
-ZED_SERIAL_NUMBERS = [cam.serial_number for cam in sl.Camera.get_device_list()]
+ZED_SERIAL_NUMBERS = [
+                      28401408,
+                      26658469
+                      ]
 HEAD_2_JOINT = -0.3
 START_POSE = np.array([0.48, -0.25, 1.53, 1.43, 1.7, -0.80, -1.54])
 
@@ -72,6 +75,7 @@ class RecordLeft:
         rospy.sleep(0.1)
 
         self.zed_pub = rospy.Publisher('/zed_trigger', String, queue_size=10)
+        rospy.sleep(1)
         self.setup_camera()
         
         # plotting utils
@@ -95,7 +99,9 @@ class RecordLeft:
     
     def setup_camera(self):
         i = 1
+        print(ZED_SERIAL_NUMBERS)
         for sn in ZED_SERIAL_NUMBERS:
+            print(f"salvando imagem {sn}")
             self.zed_pub.publish(String(data=f"save_rgb {sn} /home/hydra/sophie/whole_body_manipulation/logs/current_image_{i}.png"))
             i += 1 # Update name of png file
 

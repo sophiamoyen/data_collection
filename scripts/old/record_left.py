@@ -76,10 +76,11 @@ class RecordLeft:
     """
     Class for Structure for Data Collection
     """
-    def __init__(self, path_to_logs):
+    def __init__(self, path_to_logs, collect=True):
         """
         Args:
             path_to_logs (str): path to log folder. Subfolders with timestamp of each espisode will be created to save data of each episode
+            collect (bool): if True, will plot this and all EE_trajs before
         """
         
         self._collect = collect
