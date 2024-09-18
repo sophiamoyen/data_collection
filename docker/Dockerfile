@@ -1,5 +1,5 @@
-# Base image of ubuntu 20.04, cuda 12.1 and ZED SDK 4
-FROM stereolabs/zed:4.0-devel-cuda12.1-ubuntu20.04
+# Base image of ubuntu 20.04, cuda 12.1 and ZED SDK 4.1
+FROM stereolabs/zed:4.1-devel-cuda12.1-ubuntu20.04
 
 ENV LOGNAME=root
 ENV LANG=C.UTF-8
@@ -16,12 +16,6 @@ RUN apt-get update -y || true && \
 
 # Install Packages
 RUN apt-get install -y python3-rosdep python3-rosinstall  python3-rosinstall-generator python3-wstool
-
-# Install Moveit!
-RUN apt-get update -q && \
-    apt-get dist-upgrade -q -y && \
-    apt-get install -y ros-noetic-moveit && \
-    rm -rf /var/lib/apt/lists/*
 
 # Initialize rosdep
 RUN rosdep init && rosdep update
