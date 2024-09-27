@@ -3,7 +3,6 @@ import subprocess
 import time
 import rospy
 from sensor_msgs.msg import Joy
-import numpy as np
 """
 The idea of this code is to redirect different camera streams for the Vive Headset VR based on VIVE controller commands
 For this to work, the topic that the VR should be listening to should be:
