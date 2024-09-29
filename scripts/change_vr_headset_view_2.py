@@ -66,7 +66,6 @@ class ChangeView():
                 self.camera_state = 0
                 rospy.loginfo('View: Right')
            
-        
 
     def left_camera_cb(self,camera_data):
         self.left_camera = camera_data
