@@ -52,14 +52,14 @@ class Ui_MainWindow(object):
         self.image_1.setGeometry(QtCore.QRect(20, 170, 191, 161))
         self.image_1.setText("")
         self.image_1.setObjectName("image_1")
-        self.pixmap1 = QPixmap("/home/hydra/sophie/whole_body_manipulation/logs/current_image_1.png").scaled(192,108)
+        self.pixmap1 = QPixmap("/home/hydra/sophia_ws/ros_ws/src/data_collection/images/head.png").scaled(192,108)
         self.image_1.setPixmap(self.pixmap1)
 
         self.image_2 = QtWidgets.QLabel(self.centralwidget)
         self.image_2.setGeometry(QtCore.QRect(250, 170, 191, 161))
         self.image_2.setText("")
         self.image_2.setObjectName("image_2")
-        self.pixmap2 = QPixmap("/home/hydra/sophie/whole_body_manipulation/logs/current_image_2.png").scaled(192,108)
+        self.pixmap2 = QPixmap("/home/hydra/sophia_ws/ros_ws/src/data_collection/images/side.png").scaled(192,108)
         self.image_2.setPixmap(self.pixmap2)
 
         self.prefix = QtWidgets.QLineEdit(self.centralwidget)
