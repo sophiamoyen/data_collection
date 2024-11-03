@@ -14,6 +14,10 @@ import os
 
 from std_msgs.msg import String
 import rospy
+import sys
+from std_srvs.srv import Empty, EmptyResponse
+from std_msgs.msg import Bool, Float32
+from RosbagControlledRecorder_2 import RosbagControlledRecorder
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -22,42 +26,55 @@ class Ui_MainWindow(object):
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.startRecord = QtWidgets.QPushButton(self.centralwidget)
-        self.startRecord.setGeometry(QtCore.QRect(20, 370, 141, 23))
+        self.startRecord.setGeometry(QtCore.QRect(20, 360, 141, 23))
         self.startRecord.setObjectName("startRecord")
+        
+        self.subtaskTime = QtWidgets.QPushButton(self.centralwidget)
+        self.subtaskTime.setGeometry(QtCore.QRect(20, 390, 141, 23))
+        self.subtaskTime.setObjectName("subtaskTime")
 
         self.folder_to_save = QtWidgets.QLineEdit(self.centralwidget)
-        self.folder_to_save.setGeometry(QtCore.QRect(20, 60, 321, 23))
+        self.folder_to_save.setGeometry(QtCore.QRect(20, 40, 321, 23))
         self.folder_to_save.setObjectName("folder_to_save")
-        self.folder_save = '/home/hydra/sophie/whole_body_manipulation/logs' # Default folder
+        self.folder_save = '/home/hydra/sophia_ws/ros_ws/src/data_collection/data' # Default folder
         self.folder_to_save.setText(self.folder_save)
 
 
 
         self.browse_push_button = QtWidgets.QPushButton(self.centralwidget)
-        self.browse_push_button.setGeometry(QtCore.QRect(350, 60, 80, 23))
+        self.browse_push_button.setGeometry(QtCore.QRect(350, 40, 80, 23))
         self.browse_push_button.setObjectName("browse_push_button")
 
         self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(20, 40, 321, 16))
+        self.label.setGeometry(QtCore.QRect(20, 20, 321, 16))
         self.label.setObjectName("label")
 
         self.update_image_view_push_button = QtWidgets.QPushButton(self.centralwidget)
-        self.update_image_view_push_button.setGeometry(QtCore.QRect(20, 100, 141, 23))
+        self.update_image_view_push_button.setGeometry(QtCore.QRect(20, 130, 141, 23))
         self.update_image_view_push_button.setObjectName("update_image_view_push_button")
 
         self.image_1 = QtWidgets.QLabel(self.centralwidget)
         self.image_1.setGeometry(QtCore.QRect(20, 170, 191, 161))
         self.image_1.setText("")
         self.image_1.setObjectName("image_1")
-        self.pixmap1 = QPixmap("/home/hydra/sophie/whole_body_manipulation/logs/current_image_1.png").scaled(192,108)
+        self.pixmap1 = QPixmap("/home/hydra/sophia_ws/ros_ws/src/data_collection/images/head.png").scaled(192,108)
         self.image_1.setPixmap(self.pixmap1)
 
         self.image_2 = QtWidgets.QLabel(self.centralwidget)
         self.image_2.setGeometry(QtCore.QRect(250, 170, 191, 161))
         self.image_2.setText("")
         self.image_2.setObjectName("image_2")
-        self.pixmap2 = QPixmap("/home/hydra/sophie/whole_body_manipulation/logs/current_image_2.png").scaled(192,108)
+        self.pixmap2 = QPixmap("/home/hydra/sophia_ws/ros_ws/src/data_collection/images/side.png").scaled(192,108)
         self.image_2.setPixmap(self.pixmap2)
+
+        self.prefix = QtWidgets.QLineEdit(self.centralwidget)
+        self.prefix.setGeometry(QtCore.QRect(20, 90, 261, 25))
+        self.prefix.setObjectName("prefix")
+        self.prefix_name = 'User_study' # Default prefix
+        self.prefix.setText(self.prefix_name)
+        self.label_2 = QtWidgets.QLabel(self.centralwidget)
+        self.label_2.setGeometry(QtCore.QRect(20, 70, 201, 17))
+        self.label_2.setObjectName("label_2")
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -76,25 +93,70 @@ class Ui_MainWindow(object):
 
         self.update_image_view_push_button.clicked.connect(self.update_image_view)
 
+        self.prefix.textChanged[str].connect(self.prefix_changed)
+        
+        self.subtaskTime.clicked.connect(self.subtask_button_clicked) # start recording button
 
+        
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+        self.recording = False
+        
+        ############################ ROS Stuff ######################################
+        rospy.init_node('gui_node')
+        self.msg_pub = rospy.Publisher('/subtask_topic', Float32, queue_size=1)
+        self.timeStart = 0
+        
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.startRecord.setText(_translate("MainWindow", "Start Recording"))
+        self.subtaskTime.setText(_translate("MainWindow", "Set time for subtask"))
         self.browse_push_button.setText(_translate("MainWindow", "Browse"))
         self.label.setText(_translate("MainWindow", "Select folder in which to save the demo:"))
         self.update_image_view_push_button.setText(_translate("MainWindow", "Update image view"))
+        self.label_2.setText(_translate("MainWindow", "Select prefix to save files:"))
 
     def start_button_clicked(self):
         """ 
         Action to start recording button
         """
-        cmd_to_run = f"python ~/sophie/whole_body_manipulation/msc_tiago_ws/src/msc_tiago/scripts/wbc_teleop_left_collect_demo.py {self.folder_save} record"
-        os.system(cmd_to_run)
+        
+        if not self.recording: 
+            prefix = self.prefix_name
+            directory = self.folder_save
+            topics = '/rosout /subtask_topic /tf /vive/my_rudder_Pose /vive/my_left_controller_1_Pose /vive/my_left_controller_1/joy /vive/my_hmd_Pose /tf_static /joint_states /head_controller/command /clock /arm_left_controller/command'
+            rosbag_command = f'rosbag record -o {directory}/{prefix} {topics}' 
+            
+
+            # Start recorder object
+            self.recorder = RosbagControlledRecorder(rosbag_command)           
+            self.recorder.start_recording()
+            _translate = QtCore.QCoreApplication.translate
+            self.startRecord.setText(_translate("MainWindow", "Stop Recording"))
+            self.recording = True
+            self.timeStart = Float32()
+            self.timeStart.data = rospy.get_time()
+        else:
+            self.recorder.stop_recording()
+            _translate = QtCore.QCoreApplication.translate
+            self.startRecord.setText(_translate("MainWindow", "Start Recording"))
+            self.recording = False
+
+    def subtask_button_clicked(self):
+        if self.timeStart == 0:
+            print('Start recording first')
+        else:            
+            msg = Float32()
+            msg.data = rospy.get_time()-self.timeStart.data
+            self.msg_pub.publish(msg)
+            
+    
+    def prefix_changed(self):
+        self.prefix_name = self.prefix.text()
+
 
     def browseFiles(self):
         """ 
@@ -125,7 +187,7 @@ class Ui_MainWindow(object):
 
 
 if __name__ == "__main__":
-    import sys
+    
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
