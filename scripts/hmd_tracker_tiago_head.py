@@ -103,7 +103,7 @@ class TiagoTeleopHead(object):
             ### head control
             # only pitch and yaw is useful
             [pitch, yaw] = [self.hmd_pitch, self.hmd_yaw]
-            goal_pitch = (pitch - start_pitch)
+            goal_pitch = (pitch - start_pitch) - 0.4
             goal_yaw = -(yaw - start_yaw)
             if(goal_pitch<=-1): goal_pitch= -1
             elif(goal_pitch>=1): goal_pitch= 1
