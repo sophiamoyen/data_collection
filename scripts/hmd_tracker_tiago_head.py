@@ -91,7 +91,7 @@ class TiagoTeleopHead(object):
     def run_with_ik(self):
         self.init_robot_pose()
         rospy.loginfo('...start')
-        r = rospy.Rate(60) #default 4
+        r = rospy.Rate(30) #default 4
         rospy.sleep(0.5)
         while not rospy.is_shutdown():
             if self.first_time_flag:
@@ -103,7 +103,7 @@ class TiagoTeleopHead(object):
             ### head control
             # only pitch and yaw is useful
             [pitch, yaw] = [self.hmd_pitch, self.hmd_yaw]
-            goal_pitch = (pitch - start_pitch) - 0.4
+            goal_pitch = (pitch - start_pitch) - 0.2
             goal_yaw = -(yaw - start_yaw)
             if(goal_pitch<=-1): goal_pitch= -1
             elif(goal_pitch>=1): goal_pitch= 1

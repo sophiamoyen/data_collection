@@ -95,13 +95,13 @@ class ViveTrackerController:
         if self.drivetype == "omni":
             if abs(yawDiff) > abs(pitchDiff) and abs(yawDiff) > abs(rollDiff):
                 if (yaw) > (self.initial_pose.orientation.z) + self.yawThreshold:
-                    rospy.loginfo("yaw r")
-                    rospy.loginfo("yaw: %f", yaw)
+                    #rospy.loginfo("yaw r")
+                    #rospy.loginfo("yaw: %f", yaw)
 
                     twist_msg.linear.y = 0.1
                 elif (yaw) < (self.initial_pose.orientation.z) - self.yawThreshold:
-                    rospy.loginfo("yaw l")
-                    rospy.loginfo("yaw: %f", yaw)
+                    #rospy.loginfo("yaw l")
+                    #rospy.loginfo("yaw: %f", yaw)
                     twist_msg.linear.y = -0.1       
      
         ##to stop the tiago from spinning in place when the tracker is pdisconnected

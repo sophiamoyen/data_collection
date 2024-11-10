@@ -3,7 +3,7 @@
   <node name="base_motion" pkg="data_collection" type="rudder_vive_tracker.py" output="screen"></node>
   <node name="load_imp_controller" pkg="data_collection" type="load_imp_controller.py" output="screen"></node>
   
-  <include file="$(find optitrack)/launch/natnet_bridge.launch" />
+  <include file="$(find natnet_bridge)/launch/natnet_bridge.launch" />
 
 <!-- Launch rivz display -->
  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find data_collection)/rviz/user_study_sim.rviz" output="screen" />
