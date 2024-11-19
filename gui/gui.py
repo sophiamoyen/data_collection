@@ -127,7 +127,7 @@ class Ui_MainWindow(object):
         if not self.recording: 
             prefix = self.prefix_name
             directory = self.folder_save
-            topics = '/rosout /subtask_topic /natnet_node/natnet_frame /tf /vive/my_rudder_Pose /vive/my_left_controller_1_Pose /vive/my_left_controller_1/joy /vive/my_hmd_Pose /tf_static /joint_states /head_controller/command /clock /arm_left_controller/command'
+            topics = '/subtask_topic /tf /vive/my_rudder_Pose /vive/my_left_controller_1_Pose /vive/my_left_controller_1/joy /vive/my_hmd_Pose /tf_static /joint_states /head_controller/command /clock /arm_left_controller/command'
             rosbag_command = f'rosbag record -o {directory}/{prefix} {topics}' 
             
 
