@@ -2,6 +2,7 @@
 import rospy
 from sensor_msgs.msg import Joy , Image, CameraInfo, CompressedImage
 import sys
+from std_msgs.msg import String
 """
 The idea of this code is to redirect different camera streams for the Vive Headset VR based on VIVE controller commands
 For this to work, the topic that the VR should be listening to should be:
@@ -56,6 +57,9 @@ class ChangeView():
         self.view_pub_right = rospy.Publisher('/zed2/zed_node/right/image_rect_color/compressed',CompressedImage, queue_size=5)
         self.view_pub_left_info = rospy.Publisher('/zed2/zed_node/left/camera_info',CameraInfo, queue_size=5)
         self.view_pub_right_info = rospy.Publisher('/zed2/zed_node/right/camera_info',CameraInfo, queue_size=5)
+        
+        # Publish the current camera view being used
+        self.current_camera_pub = rospy.Publisher('/camera_view', String, queue_size=10)
 
         # Initial configuration set for head camera
         self.camera_state = 0 # 0 Head, 1 Right, 2 Left, 3 for 3rd person view
@@ -98,7 +102,7 @@ class ChangeView():
             
         if self.num_cameras == 3:
             self.camera_list = [0,1,2] # Only three cameras to switch from
-            # Left camera (ZED2 A) 
+            # Right camera (ZED2 A) 
             self.zedA_left_sub = rospy.Subscriber('/zedA/zed_node_A/left/image_rect_color/compressed', CompressedImage,self.zedA_left_cb)
             self.zedA_left = Image()
             self.zedA_right_sub = rospy.Subscriber('/zedA/zed_node_A/right/image_rect_color/compressed', CompressedImage,self.zedA_right_cb)
@@ -108,7 +112,7 @@ class ChangeView():
             self.zedA_right_info_sub = rospy.Subscriber('/zedA/zed_node_A/right/camera_info', CameraInfo,self.zedA_right_info_cb)
             self.zedA_right_info = CameraInfo()
 
-            # Right Camera (ZED2 B) 
+            # Left Camera (ZED2 B) 
             self.zedB_left_sub = rospy.Subscriber('/zedB/zed_node_B/left/image_rect_color/compressed', CompressedImage,self.zedB_left_cb)
             self.zedB_left = Image()
             self.zedB_right_sub = rospy.Subscriber('/zedB/zed_node_B/right/image_rect_color/compressed', CompressedImage,self.zedB_right_cb)
@@ -188,6 +192,7 @@ class ChangeView():
         #self.zedA_left = camera_data
         if self.camera_state == 2:
             self.view_pub_left.publish(camera_data)
+            self.current_camera_pub.publish(String(data="zedA"))
             
     def zedA_right_cb(self,camera_data):
         #self.zedA_right = camera_data
@@ -209,6 +214,7 @@ class ChangeView():
         self.zedB_left = camera_data
         if self.camera_state == 1:
             self.view_pub_left.publish(self.zedB_left)
+            self.current_camera_pub.publish(String(data="zedB"))
             
     def zedB_right_cb(self,camera_data):
         self.zedB_right = camera_data
@@ -230,6 +236,7 @@ class ChangeView():
         self.zedC_left = camera_data
         if self.camera_state == 0:
             self.view_pub_left.publish(self.zedC_left)
+            self.current_camera_pub.publish(String(data="zedC"))
             
     def zedC_right_cb(self,camera_data):
         self.zedC_right = camera_data
@@ -251,6 +258,7 @@ class ChangeView():
         self.zedD_left = camera_data
         if self.camera_state == 3:
             self.view_pub_left.publish(self.zedD_left)
+            self.current_camera_pub.publish(String(data="zedD"))
             
     def zedD_right_cb(self,camera_data):
         self.zedD_right = camera_data

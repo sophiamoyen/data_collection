@@ -17,17 +17,22 @@ import rospy
 import sys
 from std_srvs.srv import Empty, EmptyResponse
 from std_msgs.msg import Bool, Float32
-from RosbagControlledRecorder_2 import RosbagControlledRecorder
+from RosbagControlledRecorder import RosbagControlledRecorder
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
+        MainWindow.setObjectName("User Study Data Collection")
         MainWindow.resize(481, 443)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
+        
         self.startRecord = QtWidgets.QPushButton(self.centralwidget)
         self.startRecord.setGeometry(QtCore.QRect(20, 360, 141, 23))
         self.startRecord.setObjectName("startRecord")
+        
+        self.checkBoxImage = QtWidgets.QCheckBox(self.centralwidget,text="Record images")
+        self.checkBoxImage.setObjectName("checkBoxImage")
+        self.checkBoxImage.setGeometry(QtCore.QRect(190, 370, 151, 21))
         
         self.subtaskTime = QtWidgets.QPushButton(self.centralwidget)
         self.subtaskTime.setGeometry(QtCore.QRect(20, 390, 141, 23))
@@ -38,8 +43,6 @@ class Ui_MainWindow(object):
         self.folder_to_save.setObjectName("folder_to_save")
         self.folder_save = '/home/hydra/sophia_ws/ros_ws/src/data_collection/data' # Default folder
         self.folder_to_save.setText(self.folder_save)
-
-
 
         self.browse_push_button = QtWidgets.QPushButton(self.centralwidget)
         self.browse_push_button.setGeometry(QtCore.QRect(350, 40, 80, 23))
@@ -57,14 +60,14 @@ class Ui_MainWindow(object):
         self.image_1.setGeometry(QtCore.QRect(20, 170, 191, 161))
         self.image_1.setText("")
         self.image_1.setObjectName("image_1")
-        self.pixmap1 = QPixmap("/home/hydra/sophia_ws/ros_ws/src/data_collection/images/head.png").scaled(192,108)
+        self.pixmap1 = QPixmap("/home/hydra/sophia_ws/ros_ws/src/data_collection/data/current_image_1.png").scaled(192,108)
         self.image_1.setPixmap(self.pixmap1)
 
         self.image_2 = QtWidgets.QLabel(self.centralwidget)
         self.image_2.setGeometry(QtCore.QRect(250, 170, 191, 161))
         self.image_2.setText("")
         self.image_2.setObjectName("image_2")
-        self.pixmap2 = QPixmap("/home/hydra/sophia_ws/ros_ws/src/data_collection/images/side.png").scaled(192,108)
+        self.pixmap2 = QPixmap("/home/hydra/sophia_ws/ros_ws/src/data_collection/data/current_image_2.png").scaled(192,108)
         self.image_2.setPixmap(self.pixmap2)
 
         self.prefix = QtWidgets.QLineEdit(self.centralwidget)
@@ -111,14 +114,15 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.startRecord.setText(_translate("MainWindow", "Start Recording"))
-        self.subtaskTime.setText(_translate("MainWindow", "Set time for subtask"))
-        self.browse_push_button.setText(_translate("MainWindow", "Browse"))
-        self.label.setText(_translate("MainWindow", "Select folder in which to save the demo:"))
-        self.update_image_view_push_button.setText(_translate("MainWindow", "Update image view"))
-        self.label_2.setText(_translate("MainWindow", "Select prefix to save files:"))
+        MainWindow.setWindowTitle(_translate("User Study Data Collection", "User Study Data Collection"))
+        self.startRecord.setText(_translate("User Study Data Collection", "Start Recording"))
+        self.subtaskTime.setText(_translate("User Study Data Collection", "Set time for subtask"))
+        self.browse_push_button.setText(_translate("User Study Data Collection", "Browse"))
+        self.label.setText(_translate("User Study Data Collection", "Select folder in which to save the demo:"))
+        self.update_image_view_push_button.setText(_translate("User Study Data Collection", "Update image view"))
+        self.label_2.setText(_translate("User Study Data Collection", "Select prefix to save files:"))
 
+    
     def start_button_clicked(self):
         """ 
         Action to start recording button
@@ -127,7 +131,14 @@ class Ui_MainWindow(object):
         if not self.recording: 
             prefix = self.prefix_name
             directory = self.folder_save
-            topics = '/subtask_topic /tf /vive/my_rudder_Pose /vive/my_left_controller_1_Pose /vive/my_left_controller_1/joy /vive/my_hmd_Pose /tf_static /joint_states /head_controller/command /clock /arm_left_controller/command'
+            topics = '/camera_view /subtask_topic /tf /vive/my_rudder_Pose /vive/my_left_controller_1_Pose /vive/my_left_controller_1/joy /vive/my_hmd_Pose /tf_static /joint_states /head_controller/command /clock /arm_left_controller/command'
+
+            if self.checkBoxImage.isChecked():
+                # Add image topics to record
+                topics = topics + ' /zedA/zed_node_A/left/image_rect_color /zedB/zed_node_B/right/image_rect_color /zedC/zed_node_C/right/image_rect_color'
+            else:
+                pass
+                
             rosbag_command = f'rosbag record -o {directory}/{prefix} {topics}' 
             
 
@@ -146,6 +157,9 @@ class Ui_MainWindow(object):
             self.recording = False
 
     def subtask_button_clicked(self):
+        """ 
+        Action that sends the time elapsed since the start of the subtask to rostopic
+        """
         if self.timeStart == 0:
             print('Start recording first')
         else:            
@@ -166,23 +180,22 @@ class Ui_MainWindow(object):
         self.folder_to_save.setText(self.folder_save)
 
     def update_image_view(self):
-        rospy.init_node('image_handler')
         self.zed_pub = rospy.Publisher('/zed_trigger', String, queue_size=10)
         rospy.sleep(1)
         ZED_SERIAL_NUMBERS = [
-                      28401408,
-                      26658469
+                      22559299,
+                      24285872
                       ]
         i = 1
         for sn in ZED_SERIAL_NUMBERS:
-            self.zed_pub.publish(String(data=f"save_rgb {sn} /home/hydra/sophie/whole_body_manipulation/logs/current_image_{i}.png"))
+            self.zed_pub.publish(String(data=f"save_rgb {sn} /home/hydra/sophia_ws/ros_ws/src/data_collection/data/current_image_{i}.png"))
             i += 1 # Update name of png file
 
         rospy.sleep(3)
         print("Images atualizadas")
-        self.pixmap1 = QPixmap("/home/hydra/sophie/whole_body_manipulation/logs/current_image_1.png").scaled(192,108)
+        self.pixmap1 = QPixmap("/home/hydra/sophia_ws/ros_ws/src/data_collection/data/current_image_1.png").scaled(192,108)
         self.image_1.setPixmap(self.pixmap1)
-        self.pixmap2 = QPixmap("/home/hydra/sophie/whole_body_manipulation/logs/current_image_2.png").scaled(192,108)
+        self.pixmap2 = QPixmap("/home/hydra/sophia_ws/ros_ws/src/data_collection/data/current_image_2.png").scaled(192,108)
         self.image_2.setPixmap(self.pixmap2)
 
 
